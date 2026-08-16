@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Cloud AI</title>
+<style>
+:root{--bg:#0d0f10;--panel:#151819;--panel2:#1c2022;--line:#2b3032;--txt:#f1f1ef;--muted:#9da3a5;--accent:#d7c09a;--danger:#e56b6f}
+*{box-sizing:border-box}html,body{margin:0;height:100%;background:var(--bg);color:var(--txt);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}button,input,textarea,select{font:inherit}
+.app{height:100dvh;display:flex;overflow:hidden}.sidebar{width:270px;background:#111314;border-right:1px solid var(--line);display:flex;flex-direction:column;padding:14px;transition:.2s}.brand{font-size:19px;font-weight:800;padding:8px 8px 18px}.new{width:100%;border:1px solid var(--line);background:var(--panel2);color:var(--txt);padding:11px;border-radius:10px;text-align:left;cursor:pointer}.new:hover,.history button:hover{background:#252a2c}.history{overflow:auto;flex:1;margin-top:12px}.history button{display:block;width:100%;border:0;background:transparent;color:#c9cecf;padding:10px;border-radius:9px;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}.bottom{display:grid;gap:8px}
+.main{min-width:0;flex:1;display:flex;flex-direction:column}.top{height:62px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:9px;padding:0 18px}.icon{border:0;background:transparent;color:#cdd1d2;cursor:pointer;font-size:19px;padding:7px;border-radius:8px}.icon:hover{background:#1d2123}.model{max-width:310px;background:transparent;color:var(--txt);border:1px solid var(--line);border-radius:9px;padding:8px 10px}.spacer{flex:1}
+.chat{flex:1;overflow:auto}.welcome{max-width:780px;margin:17vh auto 0;padding:20px;text-align:center}.welcome h1{font-size:36px;margin:0 0 10px}.welcome p{color:var(--muted);margin:0}.msg{max-width:850px;margin:auto;padding:17px 22px;display:flex;gap:13px}.avatar{width:30px;height:30px;border-radius:50%;background:#2a2f31;display:grid;place-items:center;flex:none;font-size:12px}.user .avatar{background:#746148}.bubble{line-height:1.65;white-space:pre-wrap;overflow-wrap:anywhere;min-width:0}.bubble img{max-width:min(500px,100%);border-radius:12px;margin-top:8px}.meta{font-size:11px;color:#6f7678;margin-bottom:5px}.typing{opacity:.65}
+.composer{padding:10px 16px 17px}.composerbox{max-width:850px;margin:auto;background:var(--panel);border:1px solid #363c3e;border-radius:17px;padding:10px}.attachments{display:flex;gap:7px;flex-wrap:wrap;margin:0 2px 7px}.chip{font-size:12px;border:1px solid var(--line);background:#1d2224;padding:6px 9px;border-radius:8px;color:#d9ddde}.chip button{border:0;background:transparent;color:#aaa;margin-left:5px;cursor:pointer}.composer textarea{width:100%;min-height:54px;max-height:190px;resize:none;border:0;outline:0;background:transparent;color:var(--txt);padding:7px;font-size:15px}.actions{display:flex;align-items:center;gap:7px}.action{border:1px solid var(--line);background:#1b2022;color:#d8ddde;border-radius:9px;padding:8px 10px;cursor:pointer}.send{margin-left:auto;background:#eee;color:#111;border:0;font-weight:800}.hint{max-width:850px;margin:6px auto 0;text-align:center;color:#666d70;font-size:10px}
+.overlay{position:fixed;inset:0;background:#000b;display:none;align-items:center;justify-content:center;padding:16px;z-index:20}.overlay.show{display:flex}.modal{width:min(560px,100%);background:#171b1d;border:1px solid #343a3c;border-radius:17px;padding:20px;box-shadow:0 20px 80px #000}.modal h2{margin:0 0 5px}.sub{color:var(--muted);font-size:13px;line-height:1.5}.field{margin-top:14px}.field label{display:block;font-size:12px;color:#c6cbcc;margin-bottom:6px}.field input,.field select{width:100%;background:#0e1112;color:var(--txt);border:1px solid var(--line);border-radius:9px;padding:11px;outline:0}.row{display:flex;gap:9px;margin-top:16px}.primary{flex:1;border:0;border-radius:10px;padding:11px;background:#eee;color:#111;font-weight:800;cursor:pointer}.secondary{flex:1;border:1px solid var(--line);border-radius:10px;padding:11px;background:#202527;color:#ddd;cursor:pointer}.status{font-size:12px;margin-top:9px;min-height:17px}.ok{color:#8dd6aa}.bad{color:#ff8d93}.small{font-size:11px;color:#747b7d;line-height:1.5;margin-top:13px}.fileinput{display:none}
+@media(max-width:760px){.sidebar{display:none}.top{padding:0 9px}.msg{padding:14px 12px}.composer{padding:8px}.welcome{margin-top:20vh}.welcome h1{font-size:28px}.model{max-width:205px}.modal{padding:16px}}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="sidebar" id="sidebar">
+  <div class="brand">Cloud AI</div>
+  <button class="new" onclick="newChat()">＋ New chat</button>
+  <div class="history" id="history"></div>
+  <div class="bottom">
+    <button class="new" onclick="openSettings()">⚙ API & Models</button>
+  </div>
+</aside>
+
+<main class="main">
+<header class="top">
+  <button class="icon" onclick="toggleSide()">☰</button>
+  <select id="model" class="model" title="Model"></select>
+  <button class="icon" onclick="openCustomModel()" title="Custom model">＋</button>
+  <div class="spacer"></div>
+  <button class="icon" onclick="newChat()" title="New chat">✚</button>
+  <button class="icon" onclick="openSettings()" title="Settings">⚙</button>
+</header>
+
+<section class="chat" id="chat">
+  <div class="welcome" id="welcome"><h1>How can I help?</h1><p>Chat with your configured Claude-compatible API.</p></div>
+</section>
+
+<footer class="composer">
+  <div class="composerbox">
+    <div class="attachments" id="attachments"></div>
+    <textarea id="input" rows="1" placeholder="Message Cloud AI..."></textarea>
+    <div class="actions">
+      <button class="action" onclick="$('files').click()" title="Attach files">＋ Attach</button>
+      <input class="fileinput" id="files" type="file" multiple accept="image/*,.txt,.md,.json,.csv,.js,.ts,.py,.html,.css,.xml,.yaml,.yml,.java,.c,.cpp,.h,.sql,.sh,.pdf">
+      <button class="action" onclick="voice()" title="Voice input">🎙 Voice</button>
+      <button class="action" onclick="clearInput()" title="Clear input">Clear</button>
+      <button class="action send" onclick="send()">Send ↑</button>
+    </div>
+  </div>
+  <div class="hint">API key is kept in this browser session, not inside your GitHub file.</div>
+</footer>
+</main>
+</div>
+
+<div class="overlay" id="settings">
+<div class="modal">
+<h2>Connect your API</h2>
+<div class="sub">Enter the same Base URL and API key that you already use in your Claude Code setup.</div>
+<div class="field"><label>Base URL</label><input id="base" placeholder="https://tabitoken.com"></div>
+<div class="field"><label>API Key</label><input id="key" type="password" autocomplete="off" placeholder="Paste API key"></div>
+<div class="field"><label>Default model</label><select id="modelSet"></select></div>
+<div class="row"><button class="primary" onclick="testAndSave()">Save & Test</button><button class="secondary" onclick="closeSettings()">Cancel</button></div>
+<div class="status" id="status"></div>
+<p class="small">This static GitHub Pages version calls the API directly from the browser. Your API provider must allow browser CORS requests. Never put a real API key into index.html or commit it to GitHub.</p>
+</div>
+</div>
+
+<div class="overlay" id="custom">
+<div class="modal">
+<h2>Custom model</h2><div class="sub">Enter an exact model ID exposed by your API.</div>
+<div class="field"><label>Model ID</label><input id="customInput" placeholder="claude-opus-5-thinking"></div>
+<div class="row"><button class="primary" onclick="addCustom()">Use model</button><button class="secondary" onclick="$('custom').classList.remove('show')">Cancel</button></div>
+</div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const state={
+ base:localStorage.getItem('cloud_base')||'',
+ key:sessionStorage.getItem('cloud_key')||'',
+ model:localStorage.getItem('cloud_model')||'claude-opus-5-thinking',
+ chats:JSON.parse(localStorage.getItem('cloud_chats')||'[]'),
+ messages:[],
+ files:[]
+};
+const defaultModels=['claude-opus-5-thinking','claude-opus-4-8-thinking'];
+
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function modelList(){let a=[...defaultModels];if(state.model&&!a.includes(state.model))a.unshift(state.model);return a}
+function loadModelSelect(){
+ const arr=modelList(); $('model').innerHTML=arr.map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join('');
+ $('modelSet').innerHTML=arr.map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join('');
+ $('model').value=state.model;$('modelSet').value=state.model;
+}
+function normalizedBase(){
+ let b=state.base.trim().replace(/\/+$/,'');
+ if(!b)return '';
+ if(/\/v\d+$/.test(b))return b;
+ return b+'/v1';
+}
+function messagesUrl(){return normalizedBase()+'/messages'}
+function authHeaders(){return {'Content-Type':'application/json','x-api-key':state.key,'anthropic-version':'2023-06-01'}}
+function openSettings(){
+ $('base').value=state.base;$('key').value=state.key;$('modelSet').value=state.model;$('status').textContent='';
+ $('settings').classList.add('show');
+}
+function closeSettings(){$('settings').classList.remove('show')}
+async function testAndSave(){
+ const b=$('base').value.trim().replace(/\/+$/,'');const k=$('key').value.trim();const m=$('modelSet').value;
+ if(!b||!k){$('status').textContent='Base URL और API key दोनों भरें.';$('status').className='status bad';return}
+ state.base=b;state.key=k;state.model=m;
+ $('status').textContent='Testing API…';$('status').className='status';
+ try{
+   const r=await fetch(messagesUrl(),{method:'POST',headers:authHeaders(),body:JSON.stringify({model:m,max_tokens:8,messages:[{role:'user',content:'Reply only: OK'}]})});
+   const raw=await r.text();let d={};try{d=JSON.parse(raw)}catch{}
+   if(!r.ok)throw new Error(d?.error?.message||raw||('HTTP '+r.status));
+   localStorage.setItem('cloud_base',state.base);localStorage.setItem('cloud_model',state.model);sessionStorage.setItem('cloud_key',state.key);
+   loadModelSelect();$('status').textContent='Connected ✓';$('status').className='status ok';
+   setTimeout(closeSettings,500);
+ }catch(e){$('status').textContent='Connection failed: '+e.message;$('status').className='status bad'}
+}
+function saveModel(){state.model=$('model').value;localStorage.setItem('cloud_model',state.model)}
+$('model').addEventListener('change',saveModel);
+function openCustomModel(){$('customInput').value='';$('custom').classList.add('show');setTimeout(()=>$('customInput').focus(),50)}
+function addCustom(){let m=$('customInput').value.trim();if(!m)return;if(![...defaultModels].includes(m)){defaultModels.unshift(m)}state.model=m;loadModelSelect();saveModel();$('custom').classList.remove('show')}
+function toggleSide(){let s=$('sidebar');s.style.display=getComputedStyle(s).display==='none'?'flex':'none'}
+function newChat(){state.messages=[];state.files=[];renderFiles();render();$('input').focus()}
+function clearInput(){$('input').value='';state.files=[];renderFiles()}
+function render(){let c=$('chat');c.innerHTML=state.messages.length?'':'<div class="welcome" id="welcome"><h1>How can I help?</h1><p>Chat with your configured Claude-compatible API.</p></div>';state.messages.forEach(x=>drawMessage(x.role,x.content));c.scrollTop=c.scrollHeight}
+function drawMessage(role,content){
+ let d=document.createElement('div');d.className='msg '+role;
+ let body=document.createElement('div');body.className='bubble';
+ if(Array.isArray(content)){content.forEach(block=>{if(block.type==='text'){let p=document.createElement('div');p.textContent=block.text;body.appendChild(p)}else if(block.type==='image'){let img=document.createElement('img');img.src='data:'+block.media_type+';base64,'+block.data;body.appendChild(img)}})}else body.textContent=content;
+ d.innerHTML='<div class="avatar">'+(role==='user'?'You':'AI')+'</div>';d.appendChild(body);$('chat').appendChild(d)
+}
+function drawHistory(){$('history').innerHTML=state.chats.map((c,i)=>'<button onclick="loadChat('+i+')">'+esc(c.title)+'</button>').join('')}
+function loadChat(i){state.messages=state.chats[i].messages||[];render()}
+function persistChat(){if(!state.messages.length)return;let title=typeof state.messages[0].content==='string'?state.messages[0].content.slice(0,55):'New chat';state.chats.unshift({title,messages:state.messages});state.chats=state.chats.slice(0,40);localStorage.setItem('cloud_chats',JSON.stringify(state.chats));drawHistory()}
+async function fileToBlock(file){
+ const data=await new Promise((res,rej)=>{let r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(file)});
+ const base64=String(data).split(',')[1]||'';
+ if(file.type.startsWith('image/'))return {type:'image',source:{type:'base64',media_type:file.type,data:base64},_preview:{type:'image',media_type:file.type,data:base64,name:file.name}};
+ if(file.type==='application/pdf')return {type:'document',source:{type:'base64',media_type:'application/pdf',data:base64},_preview:{type:'text',text:'[PDF attached: '+file.name+']'}};
+ const text=await new Promise((res,rej)=>{let r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsText(file)});
+ return {type:'text',text:'\n\n--- FILE: '+file.name+' ---\n'+text+'\n--- END FILE ---\n',_preview:{type:'text',text:file.name}};
+}
+$('files').addEventListener('change',async e=>{for(const f of e.target.files){try{state.files.push(await fileToBlock(f))}catch(err){alert('Could not read '+f.name+': '+err.message)}}renderFiles();e.target.value=''});
+function renderFiles(){$('attachments').innerHTML=state.files.map((f,i)=>'<span class="chip">'+esc(f._preview.name||f._preview.text)+' <button onclick="removeFile('+i+')">×</button></span>').join('')}
+function removeFile(i){state.files.splice(i,1);renderFiles()}
+function apiContent(text){
+ let blocks=[];
+ for(const f of state.files){let b={...f};delete b._preview;blocks.push(b)}
+ if(text)blocks.push({type:'text',text});
+ return blocks.length===1&&blocks[0].type==='text'?blocks[0].text:blocks
+}
+function extractText(data){return (data?.content||[]).filter(x=>x.type==='text').map(x=>x.text).join('\n')||data?.output_text||data?.response||JSON.stringify(data,null,2)}
+async function send(){
+ const text=$('input').value.trim();if(!text&&!state.files.length)return;
+ if(!state.base||!state.key){openSettings();return}
+ const content=apiContent(text);
+ state.messages.push({role:'user',content});$('input').value='';state.files=[];renderFiles();
+ render();let typing=document.createElement('div');typing.className='msg assistant';typing.innerHTML='<div class="avatar">AI</div><div class="bubble typing">Thinking…</div>';$('chat').appendChild(typing);$('chat').scrollTop=$('chat').scrollHeight;
+ try{
+   const r=await fetch(messagesUrl(),{method:'POST',headers:authHeaders(),body:JSON.stringify({model:state.model,max_tokens:4096,messages:state.messages})});
+   const raw=await r.text();let d;try{d=JSON.parse(raw)}catch{d={}};
+   if(!r.ok)throw new Error(d?.error?.message||raw||('HTTP '+r.status));
+   const answer=extractText(d);typing.remove();state.messages.push({role:'assistant',content:answer});drawMessage('assistant',answer);persistChat();$('chat').scrollTop=$('chat').scrollHeight;
+ }catch(e){typing.querySelector('.bubble').textContent='Error: '+e.message}
+}
+function voice(){
+ const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+ if(!SR){alert('Voice input is not supported here. Use Chrome on Android.');return}
+ const r=new SR();r.lang='hi-IN';r.interimResults=false;r.maxAlternatives=1;r.onresult=e=>{$('input').value+=($('input').value?' ':'')+e.results[0][0].transcript};r.onerror=e=>alert('Voice error: '+e.error);r.start()
+}
+$('input').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send()}});
+loadModelSelect();drawHistory();if(!state.base||!state.key)setTimeout(openSettings,250);
+</script>
+</body>
+</html>
