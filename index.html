@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Cloud AI</title>
+<style>
+:root{--bg:#0b0d10;--panel:#12161b;--panel2:#191e25;--line:#2a3038;--text:#f3f4f6;--muted:#9aa3ad;--accent:#d6b98c}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;height:100vh;overflow:hidden}
+.app{height:100vh;display:flex}.side{width:280px;background:#0f1216;border-right:1px solid var(--line);display:flex;flex-direction:column;padding:14px}.brand{font-weight:800;font-size:19px;padding:10px 8px 18px}.new{border:1px solid var(--line);background:var(--panel2);color:var(--text);border-radius:10px;padding:11px;cursor:pointer;text-align:left}.history{flex:1;overflow:auto;margin-top:14px}.history button{display:block;width:100%;text-align:left;border:0;background:transparent;color:#cbd0d7;padding:10px;border-radius:8px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.history button:hover{background:#191e25}.main{flex:1;min-width:0;display:flex;flex-direction:column}.top{height:62px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;padding:0 18px}.model{background:transparent;border:1px solid var(--line);color:var(--text);border-radius:9px;padding:8px 10px;max-width:260px}.spacer{flex:1}.icon{border:0;background:transparent;color:#cbd0d7;font-size:19px;cursor:pointer}.chat{flex:1;overflow:auto}.welcome{max-width:760px;margin:15vh auto 0;padding:20px;text-align:center}.welcome h1{font-size:34px;margin:0 0 8px}.welcome p{color:var(--muted)}.msg{max-width:820px;margin:0 auto;padding:18px 22px;display:flex;gap:14px}.avatar{width:30px;height:30px;border-radius:50%;background:#262c34;display:grid;place-items:center;flex:none;font-size:13px}.bubble{min-width:0;line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere}.user .avatar{background:#78644c}.composer{padding:12px 18px 18px}.box{max-width:820px;margin:auto;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:10px}.box textarea{width:100%;background:transparent;border:0;outline:0;color:var(--text);resize:none;min-height:52px;max-height:180px;font:inherit;padding:6px}.actions{display:flex;align-items:center;gap:8px}.actions button{border:1px solid var(--line);background:#1a2027;color:#dce1e7;border-radius:9px;padding:8px 11px;cursor:pointer}.actions .send{margin-left:auto;background:#eee;color:#111;border:0;font-weight:800}.hint{max-width:820px;margin:7px auto 0;text-align:center;color:#69717b;font-size:11px}.modal{position:fixed;inset:0;background:#0009;display:none;align-items:center;justify-content:center;padding:18px}.modal.show{display:flex}.dialog{width:min(520px,100%);background:#14181e;border:1px solid var(--line);border-radius:16px;padding:20px}.dialog h2{margin-top:0}.field{margin:12px 0}.field label{display:block;font-size:13px;color:#b9c0c8;margin-bottom:6px}.field input,.field select{width:100%;padding:11px;border-radius:9px;border:1px solid var(--line);background:#0d1116;color:white}.row{display:flex;gap:10px}.row>*{flex:1}.primary{width:100%;padding:11px;border:0;border-radius:9px;background:#e9e9e9;color:#111;font-weight:800;cursor:pointer}.danger{background:#2a1719;color:#ffb3b8!important}.small{font-size:12px;color:var(--muted);line-height:1.5}
+@media(max-width:720px){.side{display:none}.top{padding:0 10px}.msg{padding:14px 12px}.composer{padding:8px}.welcome{margin-top:20vh}.welcome h1{font-size:27px}.model{max-width:190px}}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="side">
+  <div class="brand">Cloud AI</div>
+  <button class="new" onclick="newChat()">＋ New chat</button>
+  <div id="history" class="history"></div>
+  <button class="new" onclick="openSettings()">⚙ API & Settings</button>
+</aside>
+<main class="main">
+<header class="top">
+  <button class="icon" onclick="toggleSidebar()" title="Menu">☰</button>
+  <select id="model" class="model" onchange="saveSettings()"></select>
+  <div class="spacer"></div>
+  <button class="icon" onclick="newChat()" title="Clear chat">＋</button>
+  <button class="icon" onclick="openSettings()" title="Settings">⚙</button>
+</header>
+<section id="chat" class="chat">
+  <div id="welcome" class="welcome"><h1>How can I help?</h1><p>Ask anything. Your API key stays in this browser session and is not written into the HTML source.</p></div>
+</section>
+<footer class="composer">
+  <div class="box">
+    <textarea id="input" placeholder="Message Cloud AI..." rows="1"></textarea>
+    <div class="actions">
+      <button onclick="document.getElementById('file').click()">＋</button>
+      <input id="file" type="file" hidden>
+      <button onclick="startVoice()">🎙 Voice</button>
+      <button class="send" onclick="send()">Send ↑</button>
+    </div>
+  </div>
+  <div class="hint">API calls are made directly from your browser.</div>
+</footer>
+</main>
+</div>
+
+<div id="modal" class="modal">
+<div class="dialog">
+<h2>API & Settings</h2>
+<div class="field"><label>API Base URL</label><input id="base" placeholder="https://api.example.com/v1"></div>
+<div class="field"><label>API Key</label><input id="key" type="password" placeholder="Paste your API key"></div>
+<div class="field"><label>Models (comma separated)</label><input id="models" placeholder="gpt-5.6, claude-opus-4-1"></div>
+<div class="row"><button class="primary" onclick="saveAndClose()">Save</button><button class="primary danger" onclick="clearAll()">Clear saved settings</button></div>
+<p class="small">For a static GitHub Pages app, the browser must be allowed by the provider's CORS policy. Do not commit a real API key to GitHub. This UI expects an OpenAI-compatible <b>/chat/completions</b> endpoint. A provider-specific Claude endpoint may need a small adapter/backend.</p>
+</div>
+</div>
+
+<script>
+const S={base:localStorage.getItem('c_base')||'',key:sessionStorage.getItem('c_key')||'',models:localStorage.getItem('c_models')||'gpt-5.6,claude-opus-4-1'};
+let chats=JSON.parse(localStorage.getItem('c_chats')||'[]'), current=[];
+const $=id=>document.getElementById(id);
+function esc(s){return s}
+function saveSettings(){localStorage.setItem('c_model',$('model').value)}
+function loadModels(){let arr=S.models.split(',').map(x=>x.trim()).filter(Boolean);$('model').innerHTML=arr.map(x=>`<option>${x.replace(/</g,'&lt;')}</option>`).join('');let old=localStorage.getItem('c_model');if(arr.includes(old))$('model').value=old}
+function openSettings(){$('base').value=S.base;$('key').value=S.key;$('models').value=S.models;$('modal').classList.add('show')}
+function saveAndClose(){S.base=$('base').value.trim().replace(/\/+$/,'');S.key=$('key').value.trim();S.models=$('models').value.trim();localStorage.setItem('c_base',S.base);localStorage.setItem('c_models',S.models);sessionStorage.setItem('c_key',S.key);loadModels();$('modal').classList.remove('show')}
+function clearAll(){localStorage.removeItem('c_base');localStorage.removeItem('c_models');localStorage.removeItem('c_model');sessionStorage.removeItem('c_key');location.reload()}
+function newChat(){current=[];render();$('input').focus()}
+function render(){let c=$('chat');c.innerHTML=current.length?'':'<div id="welcome" class="welcome"><h1>How can I help?</h1><p>Ask anything.</p></div>';current.forEach(m=>addMsg(m.role,m.content,false));c.scrollTop=c.scrollHeight}
+function addMsg(role,text,save=true){let c=$('chat');if($('welcome'))$('welcome').remove();let d=document.createElement('div');d.className='msg '+role;d.innerHTML='<div class="avatar">'+(role==='user'?'You':'AI')+'</div><div class="bubble"></div>';d.querySelector('.bubble').textContent=text;c.appendChild(d);if(save){current.push({role,content:text});c.scrollTop=c.scrollHeight}}
+function addHistory(){if(!current.length)return;chats.unshift({title:current[0].content.slice(0,50),messages:current});chats=chats.slice(0,30);localStorage.setItem('c_chats',JSON.stringify(chats));drawHistory()}
+function drawHistory(){$('history').innerHTML=chats.map((x,i)=>`<button onclick="loadChat(${i})">${x.title.replace(/</g,'&lt;')}</button>`).join('')}
+function loadChat(i){current=chats[i].messages||[];render()}
+async function send(){
+ let text=$('input').value.trim();if(!text)return;
+ if(!S.base||!S.key){openSettings();return}
+ $('input').value='';addMsg('user',text);current.push({role:'user',content:text});
+ let d=document.createElement('div');d.className='msg assistant';d.innerHTML='<div class="avatar">AI</div><div class="bubble">Thinking…</div>';$('chat').appendChild(d);$('chat').scrollTop=$('chat').scrollHeight;
+ try{
+   const r=await fetch(S.base+'/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+S.key},body:JSON.stringify({model:$('model').value,messages:current})});
+   const raw=await r.text();let data;try{data=JSON.parse(raw)}catch{data={}};
+   if(!r.ok)throw new Error(data?.error?.message||raw||('HTTP '+r.status));
+   const answer=data?.choices?.[0]?.message?.content??data?.output_text??data?.output??JSON.stringify(data,null,2);
+   d.querySelector('.bubble').textContent=answer;current.push({role:'assistant',content:answer});chats.unshift({title:current[0].content.slice(0,50),messages:current});chats=chats.slice(0,30);localStorage.setItem('c_chats',JSON.stringify(chats));drawHistory();
+ }catch(e){d.querySelector('.bubble').textContent='Error: '+e.message}
+}
+function startVoice(){
+ const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+ if(!SR){alert('Voice input is not supported in this browser. Use Chrome on Android.');return}
+ const r=new SR();r.lang='hi-IN';r.interimResults=false;r.onresult=e=>$('input').value+=( $('input').value?' ':'')+e.results[0][0].transcript;r.start()
+}
+$('input').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send()}});
+function toggleSidebar(){document.querySelector('.side').style.display=document.querySelector('.side').style.display==='none'?'flex':'none'}
+loadModels();drawHistory();
+if(!S.base||!S.key)setTimeout(openSettings,350);
+</script>
+</body>
+</html>
